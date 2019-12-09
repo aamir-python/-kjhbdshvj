@@ -1,0 +1,109 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+plt.close('all')  # sluit eventuele nog aanwezige plots (niet nodig)
+
+# opdracht 1 ######################################################
+u = [4, 1]
+v = [1, 3]
+
+
+def vsum(p, q):
+    return p[0]+q[0], p[1]+q[1]
+
+
+def crossproduct(p, q):
+    return p[0]*q[1]-p[1]*q[0]
+
+
+origin = [0, 0]
+
+plt.figure()
+plt.xlim(0, 5)  # zorgt voor een x as van 0 tot 5
+plt.ylim(0, 5)  # zorgt voor een y as van 0 tot 5
+
+# *origin is gelijk aan 0,0 zonder [] haakjes
+plt.arrow(*origin, *u)
+# * hierboven staat dus eigenlijk plt.arrow(0, 0, 4, 1)
+plt.arrow(*origin, *v)
+plt.arrow(*u, *v)
+plt.arrow(*v, *u)
+plt.arrow(*origin, *vsum(u, v))
+
+print('oppervlak parallelogram is {:.2f}'.format(crossproduct(u, v)))
+
+
+q = [1, 4]
+w = [3, 1]
+
+plt.arrow(*origin, *q, color='red')
+plt.arrow(*origin, *w,  color='red')
+plt.arrow(*q, *w, color='red')
+plt.arrow(*w, *q,  color='red')
+plt.arrow(*origin, *vsum(q, w),  color='red')
+
+print('oppervlak parallelogram is {:.2f}'.format(crossproduct(q, w)))
+# Je ziet dus dat crossproduct(q, w) = -crossproduct(w, q)
+
+
+# opdracht 2 ######################################################
+origin = [0, 0, 0]
+
+u = np.array([-1, 2, 3])
+v = np.array([2, -2, 2])
+
+w = [u[1]*v[2]-v[1]*u[2], u[2]*v[0]-v[2]*u[0], u[0]*v[1]-v[0]*u[1]]
+w1 = np.cross(v, u)
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.set_xlim([-10, 10])
+ax.set_ylim([-10, 10])
+ax.set_zlim([-10, 10])
+
+plt.quiver(*origin, *u)
+plt.quiver(*origin, *v, color='green')
+plt.quiver(*origin, *w, color='red')
+plt.quiver(*origin, *w1, color='red')
+
+
+# opdracht 3 ######################################################
+def cycloid(r, phi):
+    return r*(phi-np.sin(phi)), r*(1-np.cos(phi))
+
+
+phis = np.linspace(0, 5*2*np.pi, 1000)
+
+cycloid1 = cycloid(1, phis)
+
+plt.figure()
+plt.plot(*cycloid1)
+plt.axis('equal')  # zorgt voor gelijke schaal van x en y as
+
+plt.figure()
+plt.axis('equal')  # zorgt voor gelijke schaal van x en y as
+
+stralen = np.linspace(1, 2, 10)
+for straal in stralen:
+    plt.plot(*cycloid(straal, phis), label='R = {:.2f}'.format(straal))
+
+plt.legend()
+
+phis2 = np.linspace(0, 2*2*np.pi, 25)
+
+
+def speed(r, phi):
+    return r*(1 - np.cos(phi)), r*(0 + np.sin(phi))
+
+
+points = np.transpose(cycloid(1, phis2))  # np.transpose zorgt voor een 25x2 matrinx piv 2x25
+speeds = np.transpose(speed(1, phis2))
+
+plt.figure()
+plt.axis([0, 15, -5, 10])
+
+
+for i in range(len(points)):
+    plt.arrow(*points[i], *speeds[i],color='red', head_width=0.3, head_length=.3)
+    # hierboven is points[i] dus een array met 2 elementen (x en y)
