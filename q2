@@ -1,0 +1,79 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+armen = pd.read_csv('armen.csv')
+
+k_veer = 5
+d_as = 0.004
+d_wiel = 0.06
+g = 9.81
+m_car = 1.3
+cr = 0.15
+l_arm = 0.17
+l_touw_max = 0.33
+
+rempunt = l_touw_max*d_wiel/d_as
+
+
+def phi(x):
+    if x <= rempunt:
+        l_touw = x*d_as/d_wiel
+        beta = np.arccos(1/2*l_touw/l_arm)
+        return 2*beta
+    else:
+        l_touw = l_touw_max-(x-rempunt)*d_as/d_wiel
+        beta = np.arccos(1/2*l_touw/l_arm)
+        return 2*beta
+
+
+def f_a(x):
+    M_veer = k_veer*phi(x)
+    f_touw = M_veer/(l_arm*np.sin(phi(x)/2))
+    if x <= rempunt:
+        return f_touw*d_as/d_wiel
+    else:
+        return -f_touw*d_as/d_wiel
+
+
+def f_lager(v):
+    if v > 0:
+        return m_car*g*cr
+    if v < 0:
+        return -m_car*g*cr
+    else:
+        return 0
+
+
+def versnelling(v, x):
+    if v < 0:
+        return 0
+    else:
+        return (f_a(x)-f_lager(v))/m_car
+
+
+def integreer(t):
+    a = np.zeros(len(t))
+    v = np.zeros(len(t))
+    s = np.zeros(len(t))
+    delta_t = t[1]-t[0]
+    for i in range(len(t)):
+        a[i] = versnelling(v[i], s[i])
+        if i < len(t)-1:
+            v[i+1] = v[i] + a[i]*delta_t
+            s[i+1] = s[i] + v[i]*delta_t
+    return v, s
+
+
+time = np.linspace(0, 15, 10000)
+
+for i in range(len(armen)):
+    l_arm = armen['l_arm'][i]
+    k_veer = armen['k_veer'][i]
+    rempunt = l_touw_max*d_wiel/d_as
+    snelheid, positie = integreer(time)
+    plt.plot(positie, snelheid, label=armen['configuratie'][i])
+    print('maximale snelheid bij arm {} is {:.2f} m/s'.format(armen['configuratie'][i], max(snelheid)))
+
+plt.legend()
+plt.grid()
